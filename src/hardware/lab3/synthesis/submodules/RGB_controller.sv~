@@ -1,0 +1,45 @@
+module RGB_controller(x, y,clk, hcount, vcount, addr, M, VGA_R, VGA_G, VGA_B);
+
+ input  wire [10:0] hcount;
+ input wire [9:0]  vcount;
+ output wire [7:0] VGA_R, VGA_G, VGA_B;
+ input wire clk;
+ output wire [3:0] addr;
+ input wire [15:0] x,y;
+ input wire [31:0] M;
+ 
+
+  logic [10:0] xrow;
+  logic [9:0] yrow;
+  logic region;
+  assign region=((xrow-x)*(xrow-x)+(yrow-y)*(yrow-y));
+	assign xrow = (hcount >> 1);
+	assign yrow = vcount;
+  logic video_on;
+  
+  always_ff @(posedge clk) begin
+  if (hcount < 1200 && vcount < 480) begin
+		video_on<=1;
+	end else begin
+		video_on<=0;
+	end
+	end
+	
+	logic pixel_read;
+	always_ff @(posedge clk) begin
+	 	if (video_on) begin
+		if (((xrow-x)*(xrow-x)+(yrow-y)*(yrow-y))<400) begin
+		pixel_read <= 1'b1;
+		end
+		else begin
+		pixel_read <= 1'b0;	end
+	end
+   end
+   always_comb begin
+      {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0}; // Black
+		if (hcount == x)
+	  {VGA_R, VGA_G, VGA_B} = {8'hff, 8'hff, 8'h00}; // yellow
+	end  
+   
+endmodule 
+ 
